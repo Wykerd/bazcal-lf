@@ -12,6 +12,9 @@ Building from source requires [CMake](https://cmake.org) to generate the Makefil
 
 - [OpenSSL](https://www.openssl.org)
 - [zlib](https://zlib.net)
+- sqlite3
+- curl
+- jansson
 
 All other dependencies are built from source as git submodules.
 
@@ -35,7 +38,7 @@ make
 
 ## Running
 
-A binary called `bazcal` is generated. Execute it to start the bot.
+A binary called `bazcal-lf` is generated. Execute it to start the bot.
 
 # License
 

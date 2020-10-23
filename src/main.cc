@@ -18,6 +18,7 @@ int main(int argc, char * argv[])
 
         // start the auction update loop
         std::thread auction_loop_thread(bz_auction_loop, BAZCAL_DB_FILENAME, 1, loop_callback);
+        std::thread bazaar_loop_thread (bz_bazaar_loop, bazaar_loop_callback);
 
         // start the bot
         bot.run();

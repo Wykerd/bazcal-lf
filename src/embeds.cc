@@ -1,6 +1,8 @@
 #include "embeds.hpp"
 #include "config.hpp"
 
+std::unordered_map<std::string, std::string> item_names;
+
 const json make_info_obj(aegis::core & bot, aegis::shards::shard * _shard)
 {
     int64_t guild_count = bot.get_guild_count();
@@ -74,6 +76,50 @@ const json make_error_obj (std::string error) {
         { "description", error },
         { "color", 0xff6e5e },
     };
+    return t;
+}
+
+const json make_bazaar_obj (bz_bazaar_advice_buf_t *baz) {
+    std::vector<json> fields;
+
+    size_t s = baz->count >= 6 ? 6 : baz->count;
+
+    for (size_t i = 0; i < s; i++) {
+        bool found = item_names.find(baz->items[i]->name) == item_names.end();
+
+        std::string pretty_name; 
+        if (found) {
+            pretty_name = item_names[baz->items[i]->name];
+        } else {
+            pretty_name = baz->items[i]->name;
+            std::replace(pretty_name.begin(), pretty_name.end(), '_', ' ');
+        };
+
+        fields.push_back({
+            { "name", fmt::format("`{}` {}", i + 1, pretty_name) },
+            { 
+                "value", 
+                fmt::format(
+                    "```yaml\nQuantity:\n{:.0f}\nEstimated Profit:\n{:.0f} [{:.2f}%]\nInvested:\n{:.0f} [{:.2f}%]\n```",
+                    baz->items[i]->evolume,
+                    baz->items[i]->eprofit,
+                    baz->items[i]->pprofit * 100,
+                    baz->items[i]->invested,
+                    baz->items[i]->pinvested * 100
+                ) 
+            },
+            { "inline", true }
+        });
+    }
+
+    json t = {
+        { "title", "Bazaar Flips" },
+        { "description", "Create buy orders for the items below, wait for them to fill. When orders are filled, immediately create sell orders." },
+        { "color", 0x54B4E3 },
+        { "footer",{ { "text", "This data is updated every ~15 seconds" } } },
+        { "fields", json(fields) }
+    };
+
     return t;
 }
 

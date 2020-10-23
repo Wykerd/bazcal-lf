@@ -9,6 +9,16 @@ static bz_prediction_t **predictions = NULL;
 static size_t pool_len = 0;;
 static bz_auction_pool_t **pool = NULL;
 
+bz_bazaar_t *bazaar_data = NULL;
+
+void bazaar_loop_callback(bz_bazaar_t *data) {
+    printf("[libbazcal] Got bazaar items.\n");
+    // swop in new bazaar data
+    bz_bazaar_t *_bazaar_data = bazaar_data;
+    bazaar_data = data;
+    if (_bazaar_data != NULL) bz_free_bazaar(_bazaar_data);
+}
+
 void loop_callback (sqlite3 *db) {
     // Get the new values
     size_t __predictions_len = 0;
@@ -111,6 +121,20 @@ void message_create_handler(aegis::gateway::events::message_create obj) {
             else _channel.create_message_embed(mention, make_error_obj("No results returned, try lowering the minimum profit."));
 
             bz_free_random_auction_flips(random_flips);
+            //advise, advice, a
+        } else if (command_args[1] == "bazaar" || command_args[1] == "advise" || command_args[1] == "advice" || command_args[1] == "a") {
+            if (command_args.size() < 2) {
+                _channel.create_message_embed(mention, make_error_obj("Invalid amount of arguments: Expected 1 got 0."));
+                return;
+            }
+
+            int balance = (int)parse_float(command_args[2]);
+
+            bz_bazaar_advice_buf_t *items = bz_advise(bazaar_data, balance, 5);
+
+            _channel.create_message_embed(mention, make_bazaar_obj(items));
+
+            bz_free_advise(items);
         } /*else if (command_args[1] == "test") {
             using namespace aegis::gateway::objects;
 

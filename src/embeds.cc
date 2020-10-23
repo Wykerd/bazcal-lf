@@ -17,17 +17,14 @@ const json make_info_obj(aegis::core & bot, aegis::shards::shard * _shard)
     std::string guilds = fmt::format("{}", guild_count);
     std::string events = fmt::format("{}", eventsseen);
 
-size_t thread_count = bot.threads.size();
+    size_t thread_count = bot.threads.size();
 
-#if defined(DEBUG) || defined(_DEBUG)
-    std::string misc = fmt::format("Shard # {} of {} running on `{}` in `DEBUG` mode with {} threads", _shard->get_id() + 1, bot.shard_max_count, aegis::utility::platform::get_platform(), thread_count);
+    std::string shard_info = fmt::format("Shard # {} of {} running on `{}` with {} threads", _shard->get_id() + 1, bot.shard_max_count, aegis::utility::platform::get_platform(), thread_count);
 
-    std::string memory = fmt::format("{:.2f}MiB\nMax: {:.2f}MiB", double(aegis::utility::getCurrentRSS()) / (1024 * 1024), double(aegis::utility::getPeakRSS()) / (1024 * 1024));
-#else
-    std::string shard_info = fmt::format("Shard # {} of {} running on `{}` with {} threads", _shard->get_id(), bot.shard_max_count, aegis::utility::platform::get_platform(), thread_count);
-
-    std::string memory = fmt::format("{:.2f}MiB", double(aegis::utility::getCurrentRSS()) / (1024 * 1024));
-#endif
+    std::string memory = fmt::format("Current: {:.2f}MiB\nMax: {:.2f}MiB", 
+        double(aegis::utility::getCurrentRSS()) / (1024 * 1024), 
+        double(aegis::utility::getPeakRSS()) / (1024 * 1024)
+    );
 
     json t = {
         { "title", "Bazcal Info" },
@@ -73,9 +70,40 @@ const json make_help_obj () {
 
 const json make_error_obj (std::string error) {
     json t = {
-        { "title", "Bazcal Help" },
+        { "title", "Error" },
         { "description", error },
         { "color", 0xff6e5e },
+    };
+    return t;
+}
+
+const json make_auction_flips_obj (bz_auction_pool_t *flips) {
+    std::vector<json> fields;
+    
+    for (size_t i = 0; i < flips->size; i++) {
+        std::string uuid(flips->candidates[i]->item->uuid);
+        fields.push_back({
+            { "name", flips->candidates[i]->item->name.full },
+            { 
+                "value", 
+                fmt::format(
+                    "```yaml\nBid Price: {}\nEstimated Profit: {:.0f}\nPredicted Sell Price: {:.0f}\nDataset Size: {}\n``` ```/viewauction {}```", 
+                    flips->candidates[i]->item->max_bid, 
+                    flips->candidates[i]->profit, 
+                    flips->candidates[i]->predicted->value, 
+                    flips->candidates[i]->predicted->n, 
+                    uuid.substr(0,8)+"-"+uuid.substr(8,4)+"-"+uuid.substr(12,4)+"-"+uuid.substr(16,4)+"-"+uuid.substr(20)
+                ) 
+            }
+        });
+    };
+
+    json t = {
+        { "title", "Auction Flips" },
+        { "description", "Bid on one of the below items and put back up for auction when you won the bidding. Use your brain to determine when to stop raising your bid. Predicted profits might be lower" },
+        { "color", 0xAAE5E6 },
+        { "footer",{ { "text", "Bazcal doesn't recommend the best trades to prevent bid wars." } } },
+        { "fields", json(fields) }
     };
     return t;
 }

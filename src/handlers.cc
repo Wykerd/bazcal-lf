@@ -4,6 +4,51 @@
 #include "utils.hpp"
 #include <nlohmann/json.hpp>
 
+static size_t predictions_len = 0;
+static bz_prediction_t **predictions = NULL;
+static size_t pool_len = 0;;
+static bz_auction_pool_t **pool = NULL;
+
+void loop_callback (sqlite3 *db) {
+    // Get the new values
+    size_t __predictions_len = 0;
+    printf("[libbazcal] Generating auction predictions...\n");
+    bz_prediction_t **__predictions = bz_generate_predictions(db, &__predictions_len);
+    printf("[libbazcal] Generated %zu predictions for items\n", __predictions_len);
+
+    // Save the old pointers
+    bz_prediction_t **___predictions = predictions;
+    size_t ___predictions_len = predictions_len;
+    // Swop in new values
+    predictions_len = __predictions_len;
+    predictions = __predictions;
+    // free the old pointers
+    if (predictions != NULL) bz_free_predictions(___predictions, ___predictions_len);
+
+    for (size_t i = 0; i < predictions_len; i++) {
+        printf("[libbazcal] Prediction: %s,%d,%.2f\n", predictions[i]->item_name, predictions[i]->n, predictions[i]->value);
+    }
+
+    // Get the new values
+    size_t __pool_len = 0;
+    bz_auction_pool_t **__pool = bz_populate_auction_pool(db, predictions, predictions_len, &__pool_len);
+
+    // Save the old pointers
+    bz_auction_pool_t **___pool = pool;
+    size_t ___pool_len = pool_len;
+    // Swop in new
+    pool = __pool;
+    pool_len = __pool_len;
+    // Free old
+    if (pool != NULL) bz_free_auction_pool(___pool, ___pool_len);
+}
+
+/*
+bz_auction_pool_t *random_flips = bz_random_auction_flips(pool, pool_len, 0, 0, RAND_MAX, 50, 6, NULL);
+printf("[libbazcal] %zu random predictions\n", random_flips->size);
+bz_free_random_auction_flips(random_flips);
+*/
+
 void message_create_handler(aegis::gateway::events::message_create obj) {
     try {
         //get snowflakes related to this message
@@ -48,7 +93,36 @@ void message_create_handler(aegis::gateway::events::message_create obj) {
             _channel.create_message_embed(mention, make_help_obj());
         } else if (command_args[1] == "stats" || command_args[1] == "info" || command_args[1] == "about") {
             _channel.create_message_embed(mention, make_info_obj(bot, &obj.shard));
-        } else {
+        } else if (command_args[1] == "auction" || command_args[1] == "ahflip" || command_args[1] == "ahf" || command_args[1] == "af") {
+            double max_bid = 0;
+            double min_profit = 2000;
+
+            if (command_args.size() > 2) {
+                max_bid = parse_float(command_args[2]);
+            }
+
+            if (command_args.size() > 3) {
+                min_profit = parse_float(command_args[3]);
+            }
+
+            bz_auction_pool_t *random_flips = bz_random_auction_flips(pool, pool_len, max_bid, min_profit, 600000, 60000, 100, 3, NULL);
+
+            if (random_flips->size) _channel.create_message_embed(mention, make_auction_flips_obj(random_flips));
+            else _channel.create_message_embed(mention, make_error_obj("No results returned, try lowering the minimum profit."));
+
+            bz_free_random_auction_flips(random_flips);
+        } /*else if (command_args[1] == "test") {
+            using namespace aegis::gateway::objects;
+
+            permission_overwrite everyone_permissions;
+            everyone_permissions.id = guild_id;
+            everyone_permissions.type = overwrite_type::Role;
+            everyone_permissions.deny = 0x00000400;
+
+            _guild.create_text_channel("blf_test", 0, false, {
+                everyone_permissions
+            });
+        }*/ else {
             _channel.create_message_embed(mention, make_error_obj("Command not found."));
         }
     } catch (std::exception &e) {

@@ -1,0 +1,10 @@
+# Example docker-compose file, just replace the environment variables of the bazcal to the correct ones for you
+version: '3.1'
+
+services: 
+    bazcal:
+        build: .
+        restart: unless-stopped
+        volumes: 
+            - ./data:/data
+            

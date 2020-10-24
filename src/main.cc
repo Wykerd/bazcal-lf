@@ -16,9 +16,7 @@ int main(int argc, char * argv[])
 
         // These callbacks are what the lib calls when messages come in
         bot.set_on_message_create(*message_create_handler);
-
-        populate_item_names();
-
+        
         // start the auction update loop
         std::thread auction_loop_thread(bz_auction_loop, BAZCAL_DB_FILENAME, 1, loop_callback);
         std::thread bazaar_loop_thread (bz_bazaar_loop, bazaar_loop_callback);

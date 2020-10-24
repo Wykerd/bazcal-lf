@@ -7,7 +7,7 @@
 #define BAZCAL_VER_MAJOR 3
 #define BAZCAL_VER_MINOR 0
 #define BAZCAL_VER_PATCH 0
-#define BAZCAL_VER_SERIALIZED "3.0.0-indev.1"
+#define BAZCAL_VER_SERIALIZED "3.0.0-rc.1"
 
 #define BAZCAL_DB_FILENAME "auctions.db"
 

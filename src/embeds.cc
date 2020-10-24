@@ -22,7 +22,7 @@ const json make_info_obj(aegis::core & bot, aegis::shards::shard * _shard)
 
     std::string shard_info = fmt::format("Shard # {} of {} running on `{}` with {} threads", _shard->get_id() + 1, bot.shard_max_count, aegis::utility::platform::get_platform(), thread_count);
 
-    std::string memory = fmt::format("Current: {:.2f}MiB\nMax: {:.2f}MiB", 
+    std::string memory = fmt::format("Current: {:.2f}MiB\nPeak: {:.2f}MiB", 
         double(aegis::utility::getCurrentRSS()) / (1024 * 1024), 
         double(aegis::utility::getPeakRSS()) / (1024 * 1024)
     );

@@ -13,10 +13,10 @@ const json make_info_obj(aegis::core & bot, aegis::shards::shard * _shard)
     for (auto & e : bot.message_count)
         eventsseen += e.second;
 
-    std::string members = fmt::format("{}", user_count_unique);
-    std::string channels = fmt::format("{}", channel_count);
+    // std::string members = fmt::format("{}", user_count_unique);
+    // std::string channels = fmt::format("{}", channel_count);
     std::string guilds = fmt::format("{}", guild_count);
-    std::string events = fmt::format("{}", eventsseen);
+    // std::string events = fmt::format("{}", eventsseen);
 
     size_t thread_count = bot.threads.size();
 
@@ -34,11 +34,11 @@ const json make_info_obj(aegis::core & bot, aegis::shards::shard * _shard)
             {
                 { { "name", "Invite" },{ "value", "You can invite Bazcal to your own server [by clicking here](https://discord.com/oauth2/authorize?client_id=715462011256832090&permissions=8&scope=bot)" } },
                 { { "name", "Support" },{ "value", "Need support or have a suggestion for Bazcal? [Join our support server](https://discord.gg/QVQffMa)" } },
-                { { "name", "Members" },{ "value", members },{ "inline", true } },
-                { { "name", "Channels" },{ "value", channels },{ "inline", true } },
+                // { { "name", "Members" },{ "value", members },{ "inline", true } },
+                // { { "name", "Channels" },{ "value", channels },{ "inline", true } },
                 { { "name", "Uptime" },{ "value", bot.uptime_str() },{ "inline", true } },
                 { { "name", "Guilds" },{ "value", guilds },{ "inline", true } },
-                { { "name", "Events Seen" },{ "value", events },{ "inline", true } },
+                // { { "name", "Events Seen" },{ "value", events },{ "inline", true } },
                 { { "name", "Memory" },{ "value", memory },{ "inline", true } },
                 { { "name", "Runtime Info" },{ "value", shard_info },{ "inline", false } },
                 { { "name", "Library Info" },{ "value", fmt::format("C++{}, [{}](https://github.com/zeroxs/aegis.cpp)", CXX_VERSION, AEGIS_VERSION_TEXT) } },

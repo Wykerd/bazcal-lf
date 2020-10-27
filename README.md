@@ -18,6 +18,10 @@ Building from source requires [CMake](https://cmake.org) to generate the Makefil
 
 All other dependencies are built from source as git submodules.
 
+## Patch aegis.cpp
+
+Aegis.cpp sometimes has a issue when checking if the bot has permission to send a message. If you encounter this issue change `deps/aegis/include/aegis/impl/channel.cpp:246` to `#if 0` from `#if !defined(AEGIS_DISABLE_ALL_CACHE)`
+
 ## Configure
 
 Config is stored in a C++ header.

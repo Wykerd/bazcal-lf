@@ -3,6 +3,7 @@
 #include "config.hpp"
 #include "utils.hpp"
 #include <nlohmann/json.hpp>
+#include <curl/curl.h>
 
 static size_t predictions_len = 0;
 static bz_prediction_t **predictions = NULL;
@@ -51,6 +52,46 @@ void loop_callback (sqlite3 *db) {
     pool_len = __pool_len;
     // Free old
     if (pool != NULL) bz_free_auction_pool(___pool, ___pool_len);
+
+    // Call webhook to notify about update
+    json embed = {
+        { "embeds", json::array({
+            {
+                { "title", "Auction Update" },
+                { "color", 0xff6e5e },
+                { "description", fmt::format("Auction predicted prices recalculated\nPrices for {} items were calculated", predictions_len) },
+                { "footer",{ { "text", "Running Bazcal " BAZCAL_VER_SERIALIZED " (codename Light Falcon)" } } },
+            }
+        }) }
+    };
+
+    CURLcode ret;
+    CURL *hnd;
+    struct curl_slist *headers;
+
+    headers = NULL;
+    headers = curl_slist_append(headers, "Accept: application/json");
+    headers = curl_slist_append(headers, "Content-Type: application/json");
+    headers = curl_slist_append(headers, "charset: utf-8");
+
+    hnd = curl_easy_init();
+    std::string jsonstr = embed.dump();
+    curl_easy_setopt(hnd, CURLOPT_URL, BAZCAL_AUCTION_HOOK);
+    curl_easy_setopt(hnd, CURLOPT_NOPROGRESS, 1L);
+    curl_easy_setopt(hnd, CURLOPT_POSTFIELDS, jsonstr.c_str());
+    curl_easy_setopt(hnd, CURLOPT_POSTFIELDSIZE, jsonstr.length());
+    curl_easy_setopt(hnd, CURLOPT_USERAGENT, "bazcal/3.0");
+    curl_easy_setopt(hnd, CURLOPT_HTTPHEADER, headers);
+    curl_easy_setopt(hnd, CURLOPT_MAXREDIRS, 50L);
+    curl_easy_setopt(hnd, CURLOPT_CUSTOMREQUEST, "POST");
+    curl_easy_setopt(hnd, CURLOPT_TCP_KEEPALIVE, 1L);
+
+    ret = curl_easy_perform(hnd);
+
+    curl_easy_cleanup(hnd);
+    hnd = NULL;
+    curl_slist_free_all(headers);
+    headers = NULL;
 }
 
 /*

@@ -4,6 +4,8 @@
 #define BAZCAL_PREFIX "!bz" // The prefix must be lowercase here (it is treated as case insensitive elsewhere)
 #define BAZCAL_BOT_TOKEN ""
 
+#define BAZCAL_AUCTION_HOOK ""
+
 #define BAZCAL_VER_MAJOR 3
 #define BAZCAL_VER_MINOR 0
 #define BAZCAL_VER_PATCH 0

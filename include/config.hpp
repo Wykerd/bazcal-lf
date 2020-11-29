@@ -8,9 +8,10 @@
 
 #define BAZCAL_VER_MAJOR 3
 #define BAZCAL_VER_MINOR 0
-#define BAZCAL_VER_PATCH 0
-#define BAZCAL_VER_SERIALIZED "3.0.0"
+#define BAZCAL_VER_PATCH 1
+#define BAZCAL_VER_SERIALIZED "3.0.1"
 
 #define BAZCAL_DB_FILENAME "auctions.db"
+#define BAZCAL_PREDICTION_DUMP_FILE "auctions.dat"
 
 #endif

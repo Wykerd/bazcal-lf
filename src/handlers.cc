@@ -12,6 +12,29 @@ static bz_auction_pool_t **pool = NULL;
 
 bz_bazaar_t *bazaar_data = NULL;
 
+void auction_load_cached (const char* filename) {
+    FILE *fd;
+    fd = fopen(BAZCAL_PREDICTION_DUMP_FILE, "r");
+
+    fread(&predictions_len, sizeof(size_t), 1, fd);
+
+    predictions = (bz_prediction_t **)malloc(sizeof(bz_prediction_t *) * predictions_len);
+
+    for (size_t i = 0; i < predictions_len; i++) {
+        predictions[i] = (bz_prediction_t *)malloc(sizeof(bz_prediction_t));
+
+        size_t name_len;
+        fread(&name_len, sizeof(size_t), 1, fd);
+
+        predictions[i]->item_name = (char *)malloc(sizeof(char) * (name_len + 1));
+
+        fread(predictions[i]->item_name, sizeof(char), name_len, fd);
+
+        fread(&predictions[i]->value, sizeof(double), 1, fd);
+        fread(&predictions[i]->n, sizeof(size_t), 1, fd);
+    };
+};
+
 void bazaar_loop_callback(bz_bazaar_t *data) {
     printf("[libbazcal] Got bazaar items.\n");
     // swop in new bazaar data
@@ -92,6 +115,23 @@ void loop_callback (sqlite3 *db) {
     hnd = NULL;
     curl_slist_free_all(headers);
     headers = NULL;
+
+    FILE *fd;
+
+    fd = fopen(BAZCAL_PREDICTION_DUMP_FILE, "w");
+    
+    fwrite(&predictions_len, 1, sizeof(size_t), fd);
+
+    for (size_t i = 0; i < predictions_len; i++) {
+        size_t name_len = strlen(predictions[i]->item_name);
+
+        fwrite(&name_len, 1, sizeof(size_t), fd);
+        fwrite(predictions[i]->item_name, name_len, sizeof(char), fd);
+        fwrite(&predictions[i]->value, 1, sizeof(double), fd);
+        fwrite(&predictions[i]->n, 1, sizeof(size_t), fd);
+    };
+    
+    fclose(fd);
 }
 
 /*

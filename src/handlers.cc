@@ -14,25 +14,25 @@ bz_bazaar_t *bazaar_data = NULL;
 
 void auction_load_cached (const char* filename) {
     FILE *fd;
-    fd = fopen(BAZCAL_PREDICTION_DUMP_FILE, "r");
+    if ((fd = fopen(BAZCAL_PREDICTION_DUMP_FILE, "r"))) {
+        fread(&predictions_len, sizeof(size_t), 1, fd);
 
-    fread(&predictions_len, sizeof(size_t), 1, fd);
+        predictions = (bz_prediction_t **)malloc(sizeof(bz_prediction_t *) * predictions_len);
 
-    predictions = (bz_prediction_t **)malloc(sizeof(bz_prediction_t *) * predictions_len);
+        for (size_t i = 0; i < predictions_len; i++) {
+            predictions[i] = (bz_prediction_t *)malloc(sizeof(bz_prediction_t));
 
-    for (size_t i = 0; i < predictions_len; i++) {
-        predictions[i] = (bz_prediction_t *)malloc(sizeof(bz_prediction_t));
+            size_t name_len;
+            fread(&name_len, sizeof(size_t), 1, fd);
 
-        size_t name_len;
-        fread(&name_len, sizeof(size_t), 1, fd);
+            predictions[i]->item_name = (char *)malloc(sizeof(char) * (name_len + 1));
 
-        predictions[i]->item_name = (char *)malloc(sizeof(char) * (name_len + 1));
+            fread(predictions[i]->item_name, sizeof(char), name_len, fd);
 
-        fread(predictions[i]->item_name, sizeof(char), name_len, fd);
-
-        fread(&predictions[i]->value, sizeof(double), 1, fd);
-        fread(&predictions[i]->n, sizeof(size_t), 1, fd);
-    };
+            fread(&predictions[i]->value, sizeof(double), 1, fd);
+            fread(&predictions[i]->n, sizeof(size_t), 1, fd);
+        };
+    }
 };
 
 void bazaar_loop_callback(bz_bazaar_t *data) {
